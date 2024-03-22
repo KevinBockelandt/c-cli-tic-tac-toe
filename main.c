@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define BOARD_SIZE 9
 
@@ -103,25 +104,42 @@ void playerMove(char *board) {
 void gameMove(char *board) {
   printf("Game move:\n");
 
-  // TODO find a more interesting way than just using the first empty cell
+  // Get the number of empty cells on the board
+  int numEmptyCells = 0;
   for(int i = 0; i < BOARD_SIZE; i++) {
     if (*(board + i) == ' ') {
-      *(board + i) = 'O';
-      Coordinates moveCoord = getCoordinatesFromIndex(i);
-      printf("%c%c\n", moveCoord.col, moveCoord.row);
-      printBoard(board);
-      return;
+      numEmptyCells++;
     }
   }
 
-  // if we reach this point, we could not find any empty cell
-  printf("Internal error. No empty cells left\n");
-  exit(0);
+  if (numEmptyCells == 0) {
+    printf("Internal error. No empty cells left\n");
+    exit(0);
+  }
+
+  // Select one of those empty cells at random
+  int chosenCellIndex = rand() % numEmptyCells;
+
+  // Actually modify the cell
+  numEmptyCells = 0;
+  for(int i = 0; i < BOARD_SIZE; i++) {
+    if (*(board + i) == ' ') {
+      if (numEmptyCells == chosenCellIndex) {
+        *(board + i) = 'O';
+        Coordinates moveCoord = getCoordinatesFromIndex(i);
+        printf("%c%c\n", moveCoord.col, moveCoord.row);
+        printBoard(board);
+        return;
+      } else {
+        numEmptyCells++;
+      }
+    }
+  }
 }
 
 // Check if the game is done with the specified character
 // Return 1 if it's the case. 0 otherwise
-int checkForCompletion(char *b, char c) {
+int checkForCompletionWithChara(char *b, char c) {
   // check all the rows
   if (
     (*(b + 0) == c && *(b + 1) == c && *(b + 2) == c) ||
@@ -147,7 +165,40 @@ int checkForCompletion(char *b, char c) {
   return 0;
 }
 
+// Check if the game is done with the specified character
+// Return 1 if it's the case. 0 otherwise
+int checkForCompletion(char *b) {
+  // Check if the player won
+  if (checkForCompletionWithChara(b, 'X') == 1) {
+    printf("You win! Congratulations :)\n");
+    exit(0);
+  }
+
+  // Check if the game AI won
+  if (checkForCompletionWithChara(b, 'O') == 1) {
+    printf("You lose :/\n");
+    exit(0);
+  }
+
+  // Check that there are empty cells on the board
+  int numEmptyCells = 0;
+  for(int i = 0; i < BOARD_SIZE; i++) {
+    if (*(b + i) == ' ') {
+      numEmptyCells++;
+    }
+  }
+
+  if (numEmptyCells == 0) {
+    printf("It's a tie! :|\n");
+    exit(0);
+  }
+}
+
+
 int main() {
+  // initialize the random number generator
+  srand(time(NULL));
+
   char board[BOARD_SIZE];
   initBoard(board);
   printBoard(board);
@@ -155,15 +206,8 @@ int main() {
   // Main loop that will run until we manually exit
   while (1) {
     playerMove(board);
-    if (checkForCompletion(board, 'X') == 1) {
-      printf("You win! Congratulations :)\n");
-      exit(0);
-    }
-
+    checkForCompletion(board);
     gameMove(board);
-    if (checkForCompletion(board, 'O') == 1) {
-      printf("You lose :/\n");
-      exit(0);
-    }
+    checkForCompletion(board);
   }
 };
