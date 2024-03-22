@@ -119,33 +119,51 @@ void gameMove(char *board) {
   exit(0);
 }
 
-// Check if either the player or the game won and act upon it
-// Return 1 if the game should stop. 0 otherwise
-int checkForCompletion(char *board) {
-  // printf("You win! Congratulations :)");
-  // printf("You lose :/");
-  // printf("It's a tie! :|");
+// Check if the game is done with the specified character
+// Return 1 if it's the case. 0 otherwise
+int checkForCompletion(char *b, char c) {
+  // check all the rows
+  if (
+    (*(b + 0) == c && *(b + 1) == c && *(b + 2) == c) ||
+    (*(b + 3) == c && *(b + 4) == c && *(b + 5) == c) ||
+    (*(b + 6) == c && *(b + 7) == c && *(b + 8) == c)
+  ) {
+    return 1;
+  // check all the columns
+  } else if (
+    (*(b + 0) == c && *(b + 3) == c && *(b + 6) == c) ||
+    (*(b + 1) == c && *(b + 4) == c && *(b + 7) == c) ||
+    (*(b + 2) == c && *(b + 5) == c && *(b + 8) == c)
+  ) {
+    return 1;
+  // check all the diagonals
+  } else if (
+    (*(b + 0) == c && *(b + 4) == c && *(b + 8) == c) ||
+    (*(b + 2) == c && *(b + 4) == c && *(b + 6) == c)
+  ) {
+    return 1;
+  };
+
+  return 0;
 }
 
 int main() {
-  // Different from 0 if we should stop the game
-  short shouldStop = 0;
-
-  // The content of the board is handled by an array where each cell can contain:
-  // - ' ' (space) - when nothing has been played there yet
-  // - 'X' (cross) - when the player claimed that cell
-  // - 'O' (circle) - when the game claimed that cell
   char board[BOARD_SIZE];
   initBoard(board);
   printBoard(board);
 
-  // Main loop that will run until the game is over
-  while (shouldStop == 0) {
+  // Main loop that will run until we manually exit
+  while (1) {
     playerMove(board);
-    // shouldStop = checkForCompletion(board);
-    gameMove(board);
-    // shouldStop = checkForCompletion(board);
-  }
+    if (checkForCompletion(board, 'X') == 1) {
+      printf("You win! Congratulations :)\n");
+      exit(0);
+    }
 
-  return 0;
+    gameMove(board);
+    if (checkForCompletion(board, 'O') == 1) {
+      printf("You lose :/\n");
+      exit(0);
+    }
+  }
 };
